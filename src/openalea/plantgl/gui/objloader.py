@@ -50,11 +50,13 @@ if __name__ == '__main__':
                     (0, 1, 3),
                     (1, 2, 3),
                     (0, 2, 3)]  #
-    from openalea.plantgl.codec.obj import Group
-    g = Group("tetra")
-    s = g.shape(vertices=vertices, normals=connectivity, textures=[])
+    from openalea.plantgl.all import TriangleShape, Shape
+    s = TriangleShape(vertices=vertices, normals=connectivity)
+    s = Shape(s)
     scene = sg.Scene()
     scene.add(s)
+    # mv.loadFile()
+    mv.display(scene)
     mv.loadFile()
     mv.show()
     qapp.exec_()

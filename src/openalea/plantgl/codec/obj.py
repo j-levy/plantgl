@@ -207,6 +207,7 @@ class ObjMat:
             specular = sg.Color3(*[int(v*255) for v in self.Ks])
             return sg.Material(self.name, ambient = ambient, diffuse = diffuseCoef, specular = specular, transparency = self.Tr)
         else:
+            print("loading texture")
             base = sg.Color4(*[int(v*255) for v in self.Ka+[self.Tr]])
             fname = self.map_Kd
             if retrieveext(fname) == 'tga':
