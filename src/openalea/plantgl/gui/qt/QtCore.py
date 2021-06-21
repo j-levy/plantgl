@@ -8,7 +8,7 @@ from openalea.plantgl.config import PGL_QT_VERSION
 
 if os.environ[QT_API] in PYSIDE2_API:
     from PySide2.QtCore import *
-    from PySide2.QtGui import QSortFilterProxyModel
+    from PySide2.QtCore import QSortFilterProxyModel
     # use a common __version__
     import PySide2.QtCore
     __version__ = PySide2.QtCore.__version__
@@ -29,6 +29,9 @@ elif os.environ[QT_API] in PYQT4_API:
     from PyQt4.QtGui import QSortFilterProxyModel
     # use a common __version__
     from PyQt4.QtCore import QT_VERSION_STR as __version__
+    if QT_VERSION == 4: # this is only defined for PyQt[4,5] and only valid in PyQt4.
+        import sip
+        assert sip.getapi('QString') == 2
 elif os.environ[QT_API] in PYSIDE_API:
     from PySide.QtCore import *
     from PySide.QtGui import QSortFilterProxyModel
@@ -37,7 +40,3 @@ elif os.environ[QT_API] in PYSIDE_API:
     __version__ = PySide.QtCore.__version__
 
 
-
-if QT_VERSION == 4:
-    import sip
-    assert sip.getapi('QString') == 2
