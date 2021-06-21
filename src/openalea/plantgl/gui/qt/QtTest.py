@@ -8,7 +8,19 @@ Provides QtTest and functions
 import os
 from openalea.plantgl.gui.qt import QT_API, PYQT5_API, PYQT4_API, PYSIDE_API, PYSIDE2_API
 
-if os.environ[QT_API] in PYQT5_API:
+if os.environ[QT_API] in PYSIDE2_API:
+    import datetime
+    from PySide2.QtTest import *
+    from PySide2.QtGui import QApplication
+
+    @staticmethod
+    def qWait(t):
+        end = datetime.datetime.now() + datetime.timedelta(milliseconds=t)
+        while datetime.datetime.now() < end:
+            QApplication.processEvents()
+    QTest.qWait = qWait
+
+elif os.environ[QT_API] in PYQT5_API:
     from PyQt5.QtTest import *
 
 elif os.environ[QT_API] in PYQT4_API:
@@ -33,14 +45,3 @@ elif os.environ[QT_API] in PYSIDE_API:
             QApplication.processEvents()
     QTest.qWait = qWait
 
-elif os.environ[QT_API] in PYSID2_API:
-    import datetime
-    from PySide2.QtTest import *
-    from PySide2.QtGui import QApplication
-
-    @staticmethod
-    def qWait(t):
-        end = datetime.datetime.now() + datetime.timedelta(milliseconds=t)
-        while datetime.datetime.now() < end:
-            QApplication.processEvents()
-    QTest.qWait = qWait
