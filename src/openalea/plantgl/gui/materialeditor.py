@@ -4,13 +4,13 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 import os
 
-from openalea.plantgl.gui.qt.QtCore import QObject, QPoint, QTimer, Qt, pyqtSignal
+from openalea.plantgl.gui.qt.QtCore import QObject, QPoint, QTimer, Qt, Signal
 from openalea.plantgl.gui.qt.QtGui import QCursor, QImageReader, QPixmap, QGuiApplication
 from openalea.plantgl.gui.qt.QtWidgets import QApplication, QDialog, QDockWidget, QFileDialog, QMenu, QMessageBox, QScrollArea, QSplashScreen, QVBoxLayout, QWidget
 from openalea.plantgl.gui.qt.QtOpenGL import QGLWidget 
 
 class MaterialPanelView (QGLWidget):
-    valueChanged = pyqtSignal()
+    valueChanged = Signal()
 
     def __init__(self,parent):
         QGLWidget.__init__(self,parent)
@@ -246,7 +246,7 @@ class MaterialPanelView (QGLWidget):
                 glPopMatrix()
                 glColor3f(0,0,0)
                 glPolygonMode(GL_FRONT_AND_BACK,GL_FILL)
-                self.renderText(2*self.unitsize*i,2*self.unitsize*(j+1),4*self.unitsize,str(colindex))
+                self.renderText(float(2*self.unitsize*i), float(2*self.unitsize*(j+1)), float(4*self.unitsize), str(colindex))
                 colindex += 1
             glPushMatrix()
             glTranslate(self.unitsize+2*self.unitsize*i,self.unitsize+2*self.unitsize*nbritem,0)
@@ -556,7 +556,7 @@ class MaterialPanelView (QGLWidget):
                 self.valueChanged.emit()            
 
 class MaterialPanelWidget(QWidget):
-    valueChanged = pyqtSignal()
+    valueChanged = Signal()
     def __init__(self,parent):
         QWidget.__init__(self,parent)
         self.setObjectName("materialPanelContents")
@@ -592,7 +592,7 @@ class MaterialPanelWidget(QWidget):
 MaterialEditor = MaterialPanelWidget
 
 class MaterialPanelDock (QDockWidget):
-    valueChanged = pyqtSignal()
+    valueChanged = Signal()
     def __init__(self,parent,name = None):
         QDockWidget.__init__(self,parent)
         if name:
