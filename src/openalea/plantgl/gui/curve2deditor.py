@@ -3,11 +3,20 @@ from openalea.plantgl.algo import *
 from openalea.plantgl.math import *
 from math import pow,log
 
-from openalea.plantgl.gui.qt import QtCore, QtGui, QtOpenGL
-from openalea.plantgl.gui.qt.QtCore import QEvent, QObject, QPoint, Qt, Signal, qWarning
-from openalea.plantgl.gui.qt.QtGui import QColor, QImage,QFont
-from openalea.plantgl.gui.qt.QtOpenGL import QGLWidget
-from openalea.plantgl.gui.qt.QtWidgets import QFileDialog, QApplication
+# from openalea.plantgl.gui.qt import QtCore, QtGui, QtOpenGL
+# from openalea.plantgl.gui.qt.QtCore import QEvent, QObject, QPoint, Qt, Signal, qWarning
+# from openalea.plantgl.gui.qt.QtGui import QColor, QImage,QFont
+# from openalea.plantgl.gui.qt.QtOpenGL import QGLWidget
+# from openalea.plantgl.gui.qt.QtWidgets import QFileDialog, QApplication
+
+from PyQt5 import QtCore, QtGui, QtOpenGL
+from PyQt5.QtCore import QEvent, QObject, QPoint, Qt, qWarning
+from PyQt5.QtCore import pyqtSignal as Signal
+from PyQt5.QtGui import QColor, QImage,QFont
+from PyQt5.QtOpenGL import QGLWidget
+from PyQt5.QtWidgets import QFileDialog, QApplication
+
+from PyQGLViewer import QGLViewer, Vec, Camera, WorldConstraint, AxisPlaneConstraint, ManipulatedFrame
 
 class Curve2DConstraint:
     def __init__(self):
@@ -156,7 +165,7 @@ class Polyline2DAccessor (Curve2DAccessor):
         return self.curve.pointList.getBounds()
 
 
-from PyQGLViewer import *
+from PyQGLViewer import QGLViewer, Vec
 from OpenGL.GL import *
 from OpenGL.GLU import *
 

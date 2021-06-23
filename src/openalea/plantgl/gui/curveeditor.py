@@ -1,16 +1,24 @@
-from PyQGLViewer import *
 from openalea.plantgl.scenegraph import *
 from openalea.plantgl.algo import *
 from openalea.plantgl.math import *
 from OpenGL.GL import *
-from openalea.plantgl.gui.qt import QtCore, QtGui
 from math import pow,log
 
-from openalea.plantgl.gui.qt import QtCore, QtGui, QtOpenGL
-from openalea.plantgl.gui.qt.QtCore import QEvent, QObject, QPoint, Qt, Signal, qWarning
-from openalea.plantgl.gui.qt.QtGui import QColor, QImage,QFont
-from openalea.plantgl.gui.qt.QtOpenGL import QGLWidget
-from openalea.plantgl.gui.qt.QtWidgets import QFileDialog, QApplication
+# from openalea.plantgl.gui.qt import QtCore, QtGui, QtOpenGL
+# from openalea.plantgl.gui.qt.QtCore import QEvent, QObject, QPoint, Qt, Signal, qWarning
+# from openalea.plantgl.gui.qt.QtGui import QColor, QImage,QFont
+# from openalea.plantgl.gui.qt.QtOpenGL import QGLWidget
+# from openalea.plantgl.gui.qt.QtWidgets import QFileDialog, QApplication
+
+from PyQt5 import QtCore, QtGui, QtWidgets, QtOpenGL
+from PyQt5.QtCore import QEvent, QObject, QPoint, Qt, qWarning
+from PyQt5.QtCore import pyqtSignal as Signal
+from PyQt5.QtGui import QColor, QImage,QFont
+from PyQt5.QtOpenGL import QGLWidget
+from PyQt5.QtWidgets import QFileDialog, QApplication
+
+from PyQGLViewer import QGLViewer, Vec, Camera, WorldConstraint, AxisPlaneConstraint, ManipulatedFrame
+
 
 class CurveConstraint:
     def __init__(self):
@@ -156,7 +164,7 @@ class PolylineAccessor (CurveAccessor):
 class CurveEditor (QGLViewer):
     BLACK_THEME = {'Curve' : (255,255,255), 'BackGround' : (51,51,51), 'Text' : (255,255,255), 'CtrlCurve' : (122,122,0), 'GridStrong' : (102,102,102), 'GridFade' : (51,51,51) , 'Points' : (250,30,30), 'FirstPoint' : (250,30,250), 'SelectedPoint' : (30,250,30), 'DisabledBackGround' : (150,150,150) }
     WHITE_THEME = {'Curve' : (255,0,0), 'BackGround' : (255,255,255), 'Text' : (0,0,0), 'CtrlCurve' : (25,0,25), 'GridStrong' : (102,102,102), 'GridFade' : (153,153,153) , 'Points' : (30,250,30), 'FirstPoint' : (250,30,250), 'SelectedPoint' : (30,250,30), 'DisabledBackGround' : (150,150,150)}
-    valueChanged = QtCore.Signal()
+    valueChanged = Signal()
 
     def __init__(self,parent,constraints=CurveConstraint()):
         QGLViewer.__init__(self,parent)
@@ -417,7 +425,7 @@ class CurveEditor (QGLViewer):
             self.ctrlpts[0].appearance = self.firstPointColor
 
 if __name__ == '__main__':
-    qapp = QtGui.QApplication([])
+    qapp = QtWidgets.QApplication([])
     mv = CurveEditor(None,FuncConstraint())
     mv.setEnabled(True)
     #mv.setCurve(Polyline2D([(0,0),(1,1)]))
