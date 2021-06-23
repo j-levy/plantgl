@@ -39,7 +39,6 @@ PYQT4_API = [
 PYSIDE_API = ['pyside']
 PYSIDE2_API = ['pyside2']
 
-
 if PGL_QT_VERSION == 4:
         try :
             import PySide
@@ -47,16 +46,19 @@ if PGL_QT_VERSION == 4:
         except ImportError as ie:
             os.environ[QT_API] = PYQT4_API[0]
             os.environ.setdefault('QT_API_VERSION', '2')
-else :
-    if sys.version_info[0] == 2:
+elif PGL_QT_VERSION == 5: #we don't support Qt6 as of now.
+    if sys.version_info[0] == 2: #python2
         os.environ[QT_API] = 'pyqt'+str(PGL_QT_VERSION)
     else:
-        try :
-            import PySide2
-            os.environ[QT_API] = PYSIDE2_API[0]
-        except ImportError as ie:
-            os.environ[QT_API] = 'pyqt'+str(PGL_QT_VERSION)
-
+        try:
+            import PyQt5
+            os.environ[QT_API] = 'pyqt5'
+        except:
+            try :
+                import PySide2
+                os.environ[QT_API] = PYSIDE2_API[0]
+            except ImportError as ie:
+                os.environ[QT_API] = 'pyqt'+str(PGL_QT_VERSION)
 
 
 
