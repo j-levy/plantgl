@@ -1,5 +1,6 @@
+from openalea.plantgl.gui.qt import QtCore, QtGui, QtWidgets
 from openalea.plantgl.all import *
-from PyQGLViewer import QGLViewer, Vec
+from PyQGLViewer import *
 import OpenGL.GL as ogl
 try:
     from .editablectrlpoint import * 
@@ -10,10 +11,8 @@ import numpy as np
 import itertools
 
 
-from PyQt5.QtCore import QObject, QRect, Qt, pyqtSignal as Signal
-from PyQt5.QtWidgets import QApplication
-from PyQt5 import QtCore, QtGui, QtWidgets
-
+from openalea.plantgl.gui.qt.QtCore import QObject, QRect, Qt, Signal
+from openalea.plantgl.gui.qt.QtWidgets import QApplication
 
 helpstr = """<h2>N u r b s  E d i t o r</h2>
 This application allows the user to edit a nurbs object dynamically.

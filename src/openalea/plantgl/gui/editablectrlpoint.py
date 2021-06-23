@@ -1,5 +1,5 @@
 from openalea.plantgl.gui.qt import QtCore
-from PyQGLViewer import QGLViewer, Vec, Camera, WorldConstraint, AxisPlaneConstraint, ManipulatedFrame
+from PyQGLViewer import *
 from openalea.plantgl.all import *
 
 

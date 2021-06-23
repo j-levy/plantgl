@@ -1,10 +1,7 @@
 from openalea.plantgl.all import *
-
-#from openalea.plantgl.gui.qt import qt
-
+from openalea.plantgl.gui.qt import qt
 from PyQGLViewer import QGLViewer, Vec
 from openalea.plantgl.gui.pglnqgl import *
-import PyQt5.QtWidgets
 
 
 class PglViewer (QGLViewer):
@@ -55,7 +52,7 @@ class PglViewer (QGLViewer):
 
 
 if __name__ == '__main__':
-    qApp = PyQt5.QtWidgets.QApplication([])
+    qApp = qt.QtGui.QApplication([])
     viewer = PglViewer()
     viewer.display(Scene([Sphere()]))
     viewer.show()
