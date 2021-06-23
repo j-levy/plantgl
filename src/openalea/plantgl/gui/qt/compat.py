@@ -41,7 +41,7 @@ else:
     FilePath = DirPath = Path
 
 
-if os.environ[QT_API] in PYQT5_API:
+if True: #os.environ[QT_API] in PYQT5_API:
     from openalea.plantgl.gui.qt.QtWidgets import QFileDialog, QTabWidget
     _tab_position = {
         0: QTabWidget.North,

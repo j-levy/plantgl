@@ -26,7 +26,7 @@ def compile_rc (rcfname) :
     """ compile a Ressource file """
     pyfname = get_rcfnames_from(rcfname)
     def def_exe(suffix = ''):
-        if os.environ[QT_API] in PYQT5_API:
+        if True: #os.environ[QT_API] in PYQT5_API:
             exe = 'pyrcc5'+suffix
         else:
             exe = 'pyrcc4'+suffix

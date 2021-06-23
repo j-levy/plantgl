@@ -8,6 +8,9 @@ Provides QtTest and functions
 import os
 from openalea.plantgl.gui.qt import QT_API, PYQT5_API, PYQT4_API, PYSIDE_API, PYSIDE2_API
 
+from PyQt5.QtTest import *
+
+"""
 if os.environ[QT_API] in PYSIDE2_API:
     import datetime
     from PySide2.QtTest import *
@@ -45,3 +48,4 @@ elif os.environ[QT_API] in PYSIDE_API:
             QApplication.processEvents()
     QTest.qWait = qWait
 
+"""
