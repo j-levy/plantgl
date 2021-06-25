@@ -39,6 +39,7 @@ class Qt3dViewerWidget(QtWidgets.QWidget):
 
     def resizeEvent(self, event: QtGui.QResizeEvent):
         self.container.resize(event.size().width(), event.size().height())
+        self.view.camera().setAspectRatio(event.size().width()/event.size().height())
         return super().resizeEvent(event)
 
 
@@ -57,7 +58,7 @@ class Qt3DViewer(Qt3DExtras.Qt3DWindow):
         self.captureCamera = Qt3DRender.QCamera()
 
 
-        self.captureCamera.lens().setPerspectiveProjection(45.0, 16.0/9.0, 0.1, 1000)
+        self.camera().lens().setPerspectiveProjection(45.0, 16.0/9.0, 0.1, 1000)
         self.defaultFrameGraph().setCamera(self.camera())
 
         # For camera controls
@@ -75,6 +76,11 @@ class Qt3DViewer(Qt3DExtras.Qt3DWindow):
 
         # self.add_plane(40, 80, QSize(300, 400), 0, x, y, z)
 
+        print("camera()")
+        self.camera().dumpObjectInfo()
+        print("\n\ncaptureCamera")
+        self.captureCamera.dumpObjectInfo()
+
     def camera(self):
         return self.captureCamera
 
@@ -85,6 +91,18 @@ class Qt3DViewer(Qt3DExtras.Qt3DWindow):
             if isinstance(child, Qt3DCore.QEntity) and not(isinstance(child, Qt3DExtras.QOrbitCameraController)) and not(isinstance(child.children()[0], Qt3DRender.QPointLight)):
                 print(f"remove: {child}")
                 child.setEnabled(False)
+
+    def cameraPrint(self):
+        c =self.camera()
+        print(f"aspectRatio: {c.aspectRatio()}")
+        print(f"top, bottom, left, right: {c.top()} {c.bottom()} {c.left()} {c.right()}")
+        print(f"farPlane: {c.farPlane()}")
+        print(f"fieldOfView: {c.fieldOfView()}")
+        print(f"nearPlane: {c.nearPlane()}")
+        print(f"projectionMatrix: {c.projectionMatrix()}")
+        print(f"projectionType: {c.projectionType()}")
+        
+
 
     def keyPressEvent(self, arg__1: QtGui.QKeyEvent):
         print(f"key press: {arg__1}")
@@ -105,6 +123,8 @@ class Qt3DViewer(Qt3DExtras.Qt3DWindow):
             self.screenshot = self.capture()
         elif arg__1.key() == QtCore.Qt.Key_S:
             import pry; pry()
+        elif arg__1.key() == QtCore.Qt.Key_A:
+            self.cameraPrint()
         else:
             return super().keyPressEvent(arg__1)
 
@@ -162,11 +182,6 @@ class Qt3DViewer(Qt3DExtras.Qt3DWindow):
         framegraph.dumpObjectTree()
         self.screenshot = renderCapture.requestCapture()
         print(self.screenshot.image())
-    
-    def switchFrameGraph(self):
-        framegraph = self.activeFrameGraph()
-        self.frameGraph = framegraph
-
 
     def add_cylinder(self, radius, length, x, y, z, rings=10, slices=10) -> None:
 
