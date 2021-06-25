@@ -1,11 +1,11 @@
 import PySide2
-from PySide2.QtCore import QSize, QUrl
+from PySide2.QtCore import QPoint, QRect, QSize, QUrl, qAtan2
 # from openalea.plantgl.gui.pglnqgl import *
 
 from PySide2 import QtWidgets
 from PySide2 import QtCore
 from PySide2 import QtGui
-from PySide2.QtGui import QVector3D, QColor, qRgb
+from PySide2.QtGui import QVector3D, QColor, QWindow, qRgb
 from PySide2.QtWidgets import QApplication
 
 from PySide2.Qt3DCore import Qt3DCore
@@ -14,46 +14,70 @@ from PySide2.Qt3DRender import Qt3DRender
 from PySide2.Qt3DInput import Qt3DInput
 
 class Qt3dViewerWidget(QtWidgets.QWidget):
-    def __init__(self, parent: QtWidgets.QWidget, f: QtCore.Qt.WindowFlags, qt3dViewer):
-        super().__init__(parent=parent, f=f)
-
-        self.createWindowContainer(qt3dViewer)
+    def __init__(self, parent: QtWidgets.QWidget = None):
+        super().__init__(parent)
+        
         minScreenSize = QSize(300, 200)
-        maxScreenSize = QSize(600, 400)
+        maxScreenSize = QSize(800, 600)
         self.setMinimumSize(minScreenSize)
         self.setMaximumSize(maxScreenSize)
-        self.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.setFocusPolicy(QtCore.Qt.TabFocus)
+
+        self.view = Qt3DViewer()
+        self.container = self.createWindowContainer(self.view, self)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum)
+
+        self.view.addLight(50, 100, 100, intensity = 1.7, color="pink")
+        self.view.addLight(-50, 100, -100, intensity = 1.7, color="green")
+        self.view.addModel("/home/levy/lpy/src/openalea/lpy/gui/catalog/assets/teapot/teapot.obj")
+        self.view.resetCamera()
+
+    def show(self):
+        super().show()
+        self.view.show()
+
+    def resizeEvent(self, event: QtGui.QResizeEvent):
+        self.container.resize(event.size().width(), event.size().height())
+        return super().resizeEvent(event)
+
+
+
+       
         
 
 class Qt3DViewer(Qt3DExtras.Qt3DWindow):
     def __init__(self) -> None:
         super(Qt3DViewer, self).__init__()
-        
-        # ew->defaultFrameGraph()->setClearColor(QRgb(0x1d1d4f));
         self.defaultFrameGraph().setClearColor(qRgb(22, 54, 92))
-        # Camera
-        self.camera().lens().setPerspectiveProjection(45, 16 / 9, 0.1, 1000)
-        self.camera().setPosition(QVector3D(0, 0, 70))
-        self.camera().setViewCenter(QVector3D(0, 0, 0))
         self.rootEntity = Qt3DCore.QEntity()
         self.setRootEntity(self.rootEntity)
 
+        # Camera
+        self.captureCamera = Qt3DRender.QCamera()
+
+
+        self.captureCamera.lens().setPerspectiveProjection(45.0, 16.0/9.0, 0.1, 1000)
+        self.defaultFrameGraph().setCamera(self.camera())
+
         # For camera controls
         self.camController = Qt3DExtras.QOrbitCameraController (self.rootEntity)
-        self.camController.setLinearSpeed(50) # disable linear speed, no translation allowed.
-        self.camController.setLookSpeed(-360)
+        self.camController.setLinearSpeed(200) # disable linear speed, no translation allowed.
+        self.camController.setLookSpeed(-500)
+        
         self.camController.setCamera(self.camera())
         self.resetCamera()
-
-        self.cylinders = []
-        self.meshes = []
-        self.transforms = []
-        # Material
-        qcolor = QColor("cyan")
-        self.material = Qt3DExtras.QDiffuseSpecularMaterial(self.rootEntity)
-        self.material.setAmbient(qcolor)
+        self.defaultFrameGraph().dumpObjectTree()
+        # # Material
+        # qcolor = QColor("cyan")
+        # self.material = Qt3DExtras.QDiffuseSpecularMaterial(self.rootEntity)
+        # self.material.setAmbient(qcolor)
 
         # self.add_plane(40, 80, QSize(300, 400), 0, x, y, z)
+
+    def camera(self):
+        return self.captureCamera
+
     def resetDefaultScene(self):
         # Root entity
         for child in self.rootEntity.children():
@@ -63,7 +87,7 @@ class Qt3DViewer(Qt3DExtras.Qt3DWindow):
                 child.setEnabled(False)
 
     def keyPressEvent(self, arg__1: QtGui.QKeyEvent):
-        print(f"key press: {arg__1.key()}")
+        print(f"key press: {arg__1}")
         if arg__1.key() == QtCore.Qt.Key_R:
             self.resetCamera()
             print("Reset camera")
@@ -77,11 +101,33 @@ class Qt3DViewer(Qt3DExtras.Qt3DWindow):
             self.addModel("/home/levy/lpy/src/openalea/lpy/gui/catalog/assets/teddy/teddy.obj")
         elif arg__1.key() == QtCore.Qt.Key_Space:
             self.resetDefaultScene()
+        elif arg__1.key() == QtCore.Qt.Key_P:
+            self.screenshot = self.capture()
+        elif arg__1.key() == QtCore.Qt.Key_S:
+            import pry; pry()
         else:
             return super().keyPressEvent(arg__1)
 
+    def wheelEvent(self, arg__1: QtGui.QWheelEvent):
+        numDegrees: QtCore.QPoint = arg__1.angleDelta() / 8
+        # super().wheelEvent(arg__1)
+        # self.camera().setViewCenter(QVector3D(0,0,0))
+        # return True
+
+        print(numDegrees)
+        if numDegrees.y() > 0:
+            keyPress = QtGui.QKeyEvent(QtCore.QEvent.Type.KeyPress, QtCore.Qt.Key_PageUp, QtCore.Qt.ShiftModifier)
+            self.keyPressEvent(keyPress)
+            return True
+        elif numDegrees.y() < 0:
+            keyPress = QtGui.QKeyEvent(QtCore.QEvent.Type.KeyPress, QtCore.Qt.Key_PageDown, QtCore.Qt.ShiftModifier)
+            self.keyPressEvent(keyPress)
+            return True
+        else:
+            return super().wheelEvent(arg__1)
+
     def resetCamera(self) -> None:
-        self.camera().setPosition(QVector3D(0, 0, 70))
+        self.camera().setPosition(QVector3D(0, 0, 15))
         self.camera().setViewCenter(QVector3D(0, 0, 0))
         self.camera().setUpVector(QVector3D(0, 1, 0))
 
@@ -108,22 +154,18 @@ class Qt3DViewer(Qt3DExtras.Qt3DWindow):
         lightTransform.setTranslation(QVector3D(x, y, z))
         self.lightEntity.addComponent(lightTransform)
 
-
-    def add_plane(self, height: float, width: float, resolution: QSize, mirrored, x, y, z):
+    def capture(self):
+        framegraph = self.defaultFrameGraph()
+        camSelector = framegraph.findChild(Qt3DRender.QCamera)
+        print(f"camSelector: {camSelector}")
+        renderCapture = Qt3DRender.QRenderCapture(camSelector)
+        framegraph.dumpObjectTree()
+        self.screenshot = renderCapture.requestCapture()
+        print(self.screenshot.image())
     
-        planeEntity = Qt3DCore.QEntity(self.rootEntity)
-        planeMesh = Qt3DExtras.QPlaneMesh()
-        planeMesh.setHeight (height)
-        planeMesh.setMeshResolution (resolution)
-        planeMesh.setMirrored (mirrored)
-        planeMesh.setWidth(width)
-
-        planeTransform = Qt3DCore.QTransform()
-        planeTransform.setTranslation(QVector3D(x, y, z))
-
-        planeEntity.addComponent(planeMesh)
-        planeEntity.addComponent(self.material)
-        planeEntity.addComponent(planeTransform)
+    def switchFrameGraph(self):
+        framegraph = self.activeFrameGraph()
+        self.frameGraph = framegraph
 
 
     def add_cylinder(self, radius, length, x, y, z, rings=10, slices=10) -> None:
@@ -148,66 +190,12 @@ class Qt3DViewer(Qt3DExtras.Qt3DWindow):
         return cylinderEntity
 
 
-"""
-class none():
-    def __init__(self, parent = None):
-        QGLViewer.__init__(self,  parent)
-        self.scene = None
-        self.discretizer = Discretizer()
-        self.glrenderer = GLRenderer(self.discretizer)
-        self.bboxcomputer = BBoxComputer(self.discretizer)
-        self.animationMode = eStatic
-        self.forceclear = True
-        self.camera().setViewDirection(Vec(-1,0,0))
-        self.camera().setUpVector(Vec(0,0,1))
-
-    def setScene(self, scene = None):
-        self.scene = scene
-        if self.animationMode != eAnimatedScene or self.forceclear:
-            self.glrenderer.clear()
-            self.discretizer.clear()
-            self.bboxcomputer.clear()
-        if not scene is None:
-            self.bboxcomputer.process(self.scene)
-            bbx = self.bboxcomputer.result                
-            if bbx : 
-                self.camera().setSceneBoundingBox(*bbx2qgl(bbx))
-            else: print('error computing bbox')
-
-    def display(self,scene = None):
-        self.setScene(scene)
-        if self.animationMode == eStatic:
-            self.showEntireScene()
-        self.updateGL()
-
-    def draw(self):        
-        if self.scene and self.glrenderer.beginSceneList():
-            self.glrenderer.beginProcess()
-            self.scene.apply(self.glrenderer)
-            self.glrenderer.endProcess()
-            self.glrenderer.endSceneList()
-
-    def setAnimation(self,flag):
-        self.animationMode = flag
-        modemap = { eAnimatedPrimitives : GLRenderer.Dynamic , eAnimatedScene : GLRenderer.DynamicScene, eStatic : GLRenderer.Normal }
-        self.glrenderer.renderingMode = modemap[flag]
-
-    def showMessage(self,txt,timeout=0):
-        self.displayMessage(txt,timeout)
-
-"""
 
 if __name__ == '__main__':
     qApp = QApplication([])
-    viewer = Qt3DViewer()
     # viewer.
     # viewer.display(Scene([Sphere()]))
-    
-    viewer.addLight(50, 100, 100, intensity = 1.7, color="pink")
-    viewer.addLight(-50, 100, -100, intensity = 1.7, color="green")
-    viewer.addModel("/home/levy/lpy/src/openalea/lpy/gui/catalog/assets/teapot/teapot.obj")
+    qt3dwidget = Qt3dViewerWidget()
+    qt3dwidget.show()
 
-    viewer.resetCamera()
-    viewer.show()
-    # import pry; pry()
     qApp.exec_()
