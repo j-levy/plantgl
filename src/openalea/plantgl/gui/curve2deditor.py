@@ -1,13 +1,15 @@
 from openalea.plantgl.scenegraph import *
 from openalea.plantgl.algo import *
 from openalea.plantgl.math import *
-from math import pow,log
+from math import pow, log, isnan
 
 from openalea.plantgl.gui.qt import QtCore, QtGui, QtOpenGL
 from openalea.plantgl.gui.qt.QtCore import QEvent, QObject, QPoint, Qt, pyqtSignal, qWarning
 from openalea.plantgl.gui.qt.QtGui import QColor, QImage,QFont
 from openalea.plantgl.gui.qt.QtOpenGL import QGLWidget
 from openalea.plantgl.gui.qt.QtWidgets import QFileDialog, QApplication
+
+from openalea.plantgl.all import Point2Array, Point3Array, Vector2, Vector3
 
 class Curve2DConstraint:
     def __init__(self):
@@ -26,14 +28,20 @@ class Curve2DConstraint:
             return nbPoints,newpoint
     @staticmethod
     def defaultCurve(nbP=4):
-        return NurbsCurve2D(Point3Array([(-0.5+float(i)/(nbP-1),0) for i in range(nbP)],1) )
+        pointarray = Point3Array(nbP) # some signatures for Point3Array don't work... the construcator for only size=... works okay.
+        startValue = -0.5
+        for i in range(nbP):
+            pointarray[i][0] = startValue + (float(i)/float(nbP - 1))
+            pointarray[2] = 1
+        curve = NurbsCurve2D(pointarray)
+        return curve
 
 class FuncConstraint:
     def __init__(self,bounds=(0,1)):
         self.bounds = bounds
     def setBounds(self,bounds):
         self.bounds = bounds
-    def checkInitialCurve(self,curve):
+    def checkInitialCurve(self,curve):        
         assert curve.getPoint(0)[0] == 0 and curve.getPoint(-1)[0] == 1
     def movePointEvent(self,newpoint,selection,curve):
         p = (newpoint[0],newpoint[1])
@@ -61,7 +69,13 @@ class FuncConstraint:
             return None
     @staticmethod
     def defaultCurve(nbP=4):
-        return NurbsCurve2D(Point3Array([(float(i)/(nbP-1),0) for i in range(nbP)],1) )
+        pointarray = Point3Array(nbP) # some signatures for Point3Array don't work... the construcator for only size=... works okay.
+        startValue = 0
+        for i in range(nbP):
+            pointarray[i][0] = startValue + (float(i)/float(nbP - 1))
+            pointarray[i][2] = 1
+        curve = NurbsCurve2D(pointarray)
+        return curve
 
 class Curve2DAccessor:
     def __init__(self):
@@ -165,20 +179,32 @@ class Curve2DEditor (QGLViewer):
     WHITE_THEME = {'Curve' : (255,0,0), 'BackGround' : (255,255,255), 'Text' : (0,0,0), 'CtrlCurve' : (25,0,25), 'GridStrong' : (102,102,102), 'GridFade' : (153,153,153) , 'Points' : (30,250,30), 'FirstPoint' : (250,30,250), 'SelectedPoint' : (30,250,30), 'DisabledBackGround' : (150,150,150)}
     valueChanged = pyqtSignal()
 
-    def __init__(self,parent,constraints=Curve2DConstraint()):
+    def __init__(self, parent, constraints=None):
         QGLViewer.__init__(self,parent)
+        print("super init")
+
         self.selection = -1
         self.setStateFileName('.curveeditor.xml')
         
         self.sphere = Sphere(radius=0.02)
         self.curveshape = Shape()
         self.setTheme() #Color theme
-        
+        print("theme set")
+
+        if constraints == None:
+            print("\tcreating constraints")
+            constraints = Curve2DConstraint()
+
         self.pointsConstraints = constraints
         self.accessorType = { NurbsCurve2D : Nurbs2DAccessor,
                               BezierCurve2D : Bezier2DAccessor,
                               Polyline2D : Polyline2DAccessor,}
-        self.setCurve(self.newDefaultCurve())
+
+        print("acesstorType set")
+        curve = self.newDefaultCurve()
+        print("curve created")
+        self.setCurve(curve)
+
         self.discretizer = Discretizer()
         self.renderer = GLRenderer(self.discretizer)
         self.renderer.renderingMode = GLRenderer.Dynamic
@@ -369,8 +395,13 @@ class Curve2DEditor (QGLViewer):
                 self.drawBackground()
         else:
             self.setBackgroundColor(self.disabledBGColor)
-        self.start = self.pointOnEditionPlane(QPoint(0,self.height()-1))
-        self.end = self.pointOnEditionPlane(QPoint(self.width()-1,0))
+        
+        print(f"point height, start = {QPoint(0,self.height()-1)}, {QPoint(self.width()-1,0)}")
+
+        self.start = self.pointOnEditionPlane(QPoint(1,self.height()-1))
+        self.end = self.pointOnEditionPlane(QPoint(self.width()-1,1))
+        print(f"end, start = {self.end}, {self.start}")
+
         self.sphere.radius = (self.end[0]-self.start[0])/80
         self.discretizer.clear()
         self.curveshape.apply(self.renderer)
@@ -400,6 +431,7 @@ class Curve2DEditor (QGLViewer):
     def drawGrid(self):
         xr = self.end[0] - self.start[0]
         xy = self.end[1] - self.start[1]
+        print(xr, xy)
         if xr <= 0 or xy <= 0:
             return
         nbdigit = max(int(round(log(xr,10))),int(round(log(xy,10))))
@@ -472,7 +504,13 @@ class Curve2DEditor (QGLViewer):
 
     def pointOnEditionPlane(self,pos):
         orig,direction = self.camera().convertClickToLine(pos)
+        # orig = Vec(0,0,0)
+        if isnan(orig[0]):
+            orig = Vec(0,0,0)
+        print(f"orig, direction = {orig}, {direction}")
         npoint = orig+direction*(orig[2]/(-direction[2]))
+        print(f"npoint = {npoint}")
+
         return (npoint[0],npoint[1])
 
     def setInteractionMode(self,frame=True):
@@ -571,10 +609,14 @@ class Curve2DEditor (QGLViewer):
         if self.selection != 0:
             self.ctrlpts[0].appearance = self.firstPointColor
 
-if __name__ == '__main__':
+def main():
     qapp = QApplication([])
-    mv = Curve2DEditor(None,FuncConstraint())
+    constraints = FuncConstraint()
+    mv = Curve2DEditor(None, constraints)
     mv.setEnabled(True)
     #mv.setCurve(Polyline2D([(0,0),(1,1)]))
     mv.show()
     qapp.exec_()
+
+if __name__ == '__main__':
+    main()

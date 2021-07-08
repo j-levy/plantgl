@@ -28,7 +28,14 @@ class CurveConstraint:
         else:
             return nbPoints,newpoint
     def defaultCurve(self,nbP=4):
-        return NurbsCurve(Point3Array([(-0.5+float(i)/(nbP-1),0) for i in range(nbP)],1) )
+        pointarray = Point3Array(nbP) # some signatures for Point3Array don't work... the construcator for only size=... works okay.
+        startValue = -0,5
+        for i in range(nbP):
+            pointarray[i][0] = startValue + (float(i)/float(nbP - 1))
+            pointarray[i][2] = 1
+        curve = NurbsCurve2D(pointarray)
+        return curve
+        # return NurbsCurve(Point3Array([(-0.5+float(i)/(nbP-1),0) for i in range(nbP)],1) )
 
 class FuncConstraint:
     def __init__(self,bounds=(0,1)):
@@ -62,7 +69,14 @@ class FuncConstraint:
         else:
             return None
     def defaultCurve(self,nbP=4):
-        return NurbsCurve2D(Point3Array([(float(i)/(nbP-1),0) for i in range(nbP)],1) )
+        pointarray = Point3Array(nbP) # some signatures for Point3Array don't work... the construcator for only size=... works okay.
+        startValue = 0
+        for i in range(nbP):
+            pointarray[i][0] = startValue + (float(i)/float(nbP - 1))
+            pointarray[i][2] = 1
+        curve = NurbsCurve2D(pointarray)
+        return curve
+        # return NurbsCurve2D(Point3Array([(float(i)/(nbP-1),0) for i in range(nbP)],1) )
         
 class CurveAccessor:
     def __init__(self):
